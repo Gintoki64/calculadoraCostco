@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Presupuesto Costco</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #eef1f6;
+    color: #1a1a1a;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 50%, rgba(0,93,170,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(227,24,55,0.04) 0%, transparent 50%);
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 12px 100px;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #005DAA 0%, #004a87 100%);
+    color: white;
+    padding: 18px 16px 16px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,93,170,0.35);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #E31837, #005DAA, #E31837);
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .header-logo img {
+    height: 48px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    border-radius: 6px;
+    background: white;
+    padding: 4px 8px;
+  }
+  .header-text h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    letter-spacing: 0.3px;
+  }
+  .header-text .subtitle {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-top: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Sections */
+  .section {
+    background: white;
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+  .section:nth-child(1)::before { background: linear-gradient(90deg, #005DAA, #0078d4); }
+  .section:nth-child(2)::before { background: linear-gradient(90deg, #E31837, #ff4d6a); }
+  .section:nth-child(3)::before { background: linear-gradient(90deg, #ffc107, #ffcd38); }
+  .section:nth-child(4)::before { background: linear-gradient(90deg, #28a745, #34ce57); }
+
+  .section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #005DAA;
+    margin-bottom: 14px;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .icon-budget { background: #e8f0fe; }
+  .icon-products { background: #fce8eb; }
+  .icon-custom { background: #fff8e1; }
+  .icon-summary { background: #e8f5e9; }
+
+  /* Budget */
+  .budget-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .budget-input-row input {
+    flex: 1;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    text-align: right;
+    width: 100%;
+    background: #fafbfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .budget-input-row input:focus {
+    border-color: #005DAA;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,93,170,0.15);
+    background: white;
+  }
+  .budget-input-row span { font-size: 1.5rem; font-weight: 700; color: #888; }
+
+  .progress-wrap {
+    margin-top: 14px;
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease, background 0.4s;
+    min-width: 0;
+    background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%);
+    background-size: 20px 20px;
+  }
+  .progress-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+    text-shadow: 0 0 4px rgba(255,255,255,0.8);
+  }
+
+  /* Search */
+  .search-input {
+    width: 100%;
+    padding: 12px 14px 12px 40px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: #fafbfc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 14px center no-repeat;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-input:focus {
+    border-color: #005DAA;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,93,170,0.15);
+    background-color: white;
+  }
+
+  /* Product list */
+  .product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .product-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid #eef0f2;
+    border-radius: 12px;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    background: #fafbfc;
+  }
+  .product-card:hover { background: #f0f4ff; box-shadow: 0 2px 8px rgba(0,93,170,0.08); }
+  .product-card:active { transform: scale(0.99); }
+  .product-info { flex: 1; min-width: 0; }
+  .product-name { font-weight: 600; font-size: 0.95rem; }
+  .product-prices { font-size: 0.78rem; color: #777; margin-top: 3px; }
+  .product-prices .price-iva { font-weight: 700; color: #E31837; font-size: 0.95rem; }
+
+  .btn-add, .btn-remove {
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-add:active, .btn-remove:active { transform: scale(0.85); }
+  .btn-add {
+    background: linear-gradient(135deg, #005DAA, #0070cc);
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,93,170,0.3);
+  }
+  .btn-add:hover { box-shadow: 0 4px 12px rgba(0,93,170,0.4); }
+  .btn-remove {
+    background: linear-gradient(135deg, #E31837, #ff3050);
+    color: white;
+    font-size: 1.1rem;
+    box-shadow: 0 3px 8px rgba(227,24,55,0.3);
+  }
+
+  .no-results { text-align: center; color: #999; padding: 24px 0; font-size: 0.9rem; }
+
+  /* Custom product form */
+  .custom-form { display: flex; gap: 8px; flex-wrap: wrap; }
+  .custom-form input {
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #fafbfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .custom-form input:focus {
+    border-color: #005DAA;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,93,170,0.15);
+    background: white;
+  }
+  .custom-form .input-name { flex: 1; min-width: 120px; }
+  .custom-form .input-price { width: 100px; text-align: right; }
+  .btn-custom-add {
+    min-height: 44px;
+    padding: 0 22px;
+    background: linear-gradient(135deg, #E31837, #ff3050);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(227,24,55,0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-custom-add:active { transform: scale(0.95); }
+  .btn-custom-add:hover { box-shadow: 0 4px 12px rgba(227,24,55,0.35); }
+
+  /* Order summary */
+  .order-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .order-item:last-child { border-bottom: none; }
+  .order-item-info { flex: 1; }
+  .order-item-name { font-weight: 600; font-size: 0.9rem; }
+  .order-item-price { font-size: 0.78rem; color: #777; margin-top: 1px; }
+
+  .order-total {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid #005DAA;
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.95rem;
+  }
+  .total-row.main {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #005DAA;
+    padding: 6px 0;
+  }
+  .total-row.iva { color: #777; font-size: 0.85rem; }
+
+  .budget-status {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .budget-ok { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+  .budget-warn { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .budget-over {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    animation: pulse-red 1.5s infinite;
+  }
+  @keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(227,24,55,0.2); }
+    50% { box-shadow: 0 0 0 6px rgba(227,24,55,0); }
+  }
+
+  .empty-order { text-align: center; color: #aaa; padding: 24px 0; font-size: 0.9rem; }
+
+  .btn-clear {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-clear:active { background: #e9ecef; }
+
+  /* Name input */
+  .name-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #fafbfc;
+    margin-bottom: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .name-input:focus {
+    border-color: #005DAA;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,93,170,0.15);
+    background: white;
+  }
+
+  /* PDF button */
+  .btn-pdf {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    background: linear-gradient(135deg, #005DAA, #0070cc);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,93,170,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-pdf:active { transform: scale(0.97); }
+  .btn-pdf:hover { box-shadow: 0 4px 14px rgba(0,93,170,0.4); }
+  .btn-pdf svg { flex-shrink: 0; }
+
+  /* Footer decoration */
+  .footer-deco {
+    text-align: center;
+    padding: 24px 0 0;
+    font-size: 0.7rem;
+    color: #bbb;
+    letter-spacing: 0.5px;
+  }
+  .footer-deco .bar {
+    display: block;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #E31837, #005DAA);
+    border-radius: 2px;
+    margin: 0 auto 8px;
+  }
+
+  /* Scrollbar */
+  .product-list::-webkit-scrollbar { width: 4px; }
+  .product-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">
+    <img src="costco.webp" alt="Costco" onerror="this.src='logoCostco.svg'; this.onerror=function(){this.style.display='none'}">
+    <div class="header-text">
+      <h1>Calculadora de Presupuesto</h1>
+      <div class="subtitle">Costco Wholesale</div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <!-- Budget -->
+  <div class="section">
+    <div class="section-title"><span class="icon icon-budget">&#128176;</span> Presupuesto</div>
+    <input type="text" class="name-input" id="clientName" placeholder="Tu nombre (para el PDF)">
+    <div class="budget-input-row">
+      <input type="number" id="budgetInput" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+      <span>&euro;</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-label" id="progressLabel">0%</div>
+    </div>
+  </div>
+
+  <!-- Search + Products -->
+  <div class="section">
+    <div class="section-title"><span class="icon icon-products">&#128722;</span> Productos Costco</div>
+    <input type="text" class="search-input" id="searchInput" placeholder="Buscar producto...">
+    <div class="product-list" id="productList"></div>
+  </div>
+
+  <!-- Custom products -->
+  <div class="section">
+    <div class="section-title"><span class="icon icon-custom">&#9997;&#65039;</span> Otros productos</div>
+    <div class="custom-form">
+      <input type="text" class="input-name" id="customName" placeholder="Nombre del producto">
+      <input type="number" class="input-price" id="customPrice" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+      <button class="btn-custom-add" id="btnCustomAdd">Añadir</button>
+    </div>
+  </div>
+
+  <!-- Order summary -->
+  <div class="section">
+    <div class="section-title"><span class="icon icon-summary">&#128203;</span> Resumen del pedido</div>
+    <div id="orderList"></div>
+    <div class="order-total" id="orderTotal" style="display:none">
+      <div class="total-row iva">
+        <span>Total con IVA</span>
+        <span id="totalIva">0.00 &euro;</span>
+      </div>
+      <div class="total-row main">
+        <span>Total sin IVA</span>
+        <span id="totalSinIva">0.00 &euro;</span>
+      </div>
+    </div>
+    <div id="budgetStatus"></div>
+    <button class="btn-pdf" id="btnPdf" style="display:none" onclick="generatePDF()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Descargar PDF
+    </button>
+    <button class="btn-clear" id="btnClear" style="display:none">Vaciar pedido</button>
+  </div>
+
+  <div class="footer-deco">
+    <span class="bar"></span>
+    Calculadora de Presupuesto Costco
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const PRODUCTS = [
+  { name: "Muffins", price: 8.99 },
+  { name: "Crodots", price: 8.99 },
+  { name: "Berlinas", price: 7.99 },
+  { name: "Bizcocho", price: 3.99 },
+  { name: "Pan", price: 1.99 },
+  { name: "Tortillas", price: 10.99 },
+  { name: "Empanada", price: 11.49 },
+  { name: "Manzanas rojas", price: 4.69 },
+  { name: "Manzanas verdes", price: 5.49 },
+  { name: "Plátanos", price: 2.69 },
+  { name: "Banana", price: 1.89 },
+  { name: "Mandarinas", price: 4.69 },
+  { name: "Naranjas", price: 5.89 },
+  { name: "Frambuesas", price: 6.49 },
+  { name: "Arándanos", price: 6.99 },
+  { name: "Trenza", price: 9.99 },
+  { name: "Galletas cuadradas", price: 9.99 },
+  { name: "Croissant", price: 5.99 },
+  { name: "Zumo Caribe", price: 6.29 },
+  { name: "Zumo naranja", price: 9.99 },
+  { name: "Cookies", price: 8.99 }
+];
+
+const IVA = 0.21;
+let order = [];
+let budget = 0;
+
+const budgetInput = document.getElementById('budgetInput');
+const progressBar = document.getElementById('progressBar');
+const progressLabel = document.getElementById('progressLabel');
+const searchInput = document.getElementById('searchInput');
+const productListEl = document.getElementById('productList');
+const orderListEl = document.getElementById('orderList');
+const orderTotalEl = document.getElementById('orderTotal');
+const totalIvaEl = document.getElementById('totalIva');
+const totalSinIvaEl = document.getElementById('totalSinIva');
+const budgetStatusEl = document.getElementById('budgetStatus');
+const btnClear = document.getElementById('btnClear');
+const customName = document.getElementById('customName');
+const customPrice = document.getElementById('customPrice');
+const btnCustomAdd = document.getElementById('btnCustomAdd');
+const clientNameInput = document.getElementById('clientName');
+const btnPdf = document.getElementById('btnPdf');
+
+function sinIva(price) { return price / (1 + IVA); }
+function fmt(n) { return n.toFixed(2); }
+
+function save() {
+  localStorage.setItem('costco_order', JSON.stringify(order));
+  localStorage.setItem('costco_budget', budget.toString());
+  localStorage.setItem('costco_client', clientNameInput.value);
+}
+
+function load() {
+  const savedOrder = localStorage.getItem('costco_order');
+  const savedBudget = localStorage.getItem('costco_budget');
+  if (savedOrder) order = JSON.parse(savedOrder);
+  if (savedBudget) {
+    budget = parseFloat(savedBudget) || 0;
+    budgetInput.value = budget || '';
+  }
+  const savedClient = localStorage.getItem('costco_client');
+  if (savedClient) clientNameInput.value = savedClient;
+}
+
+function renderProducts(filter = '') {
+  const f = filter.toLowerCase().trim();
+  const filtered = f ? PRODUCTS.filter(p => p.name.toLowerCase().includes(f)) : PRODUCTS;
+
+  if (filtered.length === 0) {
+    productListEl.innerHTML = '<div class="no-results">No se encontraron productos</div>';
+    return;
+  }
+
+  productListEl.innerHTML = filtered.map(p => `
+    <div class="product-card">
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-prices">
+          <span class="price-iva">${fmt(p.price)} &euro;</span>
+          <span> &middot; sin IVA: ${fmt(sinIva(p.price))} &euro;</span>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addProduct('${p.name}', ${p.price})">+</button>
+    </div>
+  `).join('');
+}
+
+function addProduct(name, priceConIva) {
+  order.push({ name, priceConIva, id: Date.now() + Math.random() });
+  save();
+  renderOrder();
+}
+
+function removeProduct(id) {
+  order = order.filter(item => item.id !== id);
+  save();
+  renderOrder();
+}
+
+function renderOrder() {
+  if (order.length === 0) {
+    orderListEl.innerHTML = '<div class="empty-order">No hay productos en el pedido</div>';
+    orderTotalEl.style.display = 'none';
+    btnClear.style.display = 'none';
+    btnPdf.style.display = 'none';
+    budgetStatusEl.innerHTML = '';
+    updateProgress(0);
+    return;
+  }
+
+  orderListEl.innerHTML = order.map(item => `
+    <div class="order-item">
+      <div class="order-item-info">
+        <div class="order-item-name">${item.name}</div>
+        <div class="order-item-price">${fmt(item.priceConIva)} &euro; &middot; sin IVA: ${fmt(sinIva(item.priceConIva))} &euro;</div>
+      </div>
+      <button class="btn-remove" onclick="removeProduct(${item.id})">&#10005;</button>
+    </div>
+  `).join('');
+
+  const totalConIva = order.reduce((sum, item) => sum + item.priceConIva, 0);
+  const totalSinIvaVal = order.reduce((sum, item) => sum + sinIva(item.priceConIva), 0);
+
+  totalIvaEl.textContent = fmt(totalConIva) + ' \u20AC';
+  totalSinIvaEl.textContent = fmt(totalSinIvaVal) + ' \u20AC';
+  orderTotalEl.style.display = 'block';
+  btnClear.style.display = 'block';
+  btnPdf.style.display = 'flex';
+
+  if (budget > 0) {
+    const remaining = budget - totalSinIvaVal;
+    const pct = (totalSinIvaVal / budget) * 100;
+
+    if (remaining >= 0 && pct <= 75) {
+      budgetStatusEl.innerHTML = `<div class="budget-status budget-ok">Queda ${fmt(remaining)} \u20AC de presupuesto</div>`;
+    } else if (remaining >= 0) {
+      budgetStatusEl.innerHTML = `<div class="budget-status budget-warn">Queda ${fmt(remaining)} \u20AC de presupuesto</div>`;
+    } else {
+      budgetStatusEl.innerHTML = `<div class="budget-status budget-over">Presupuesto superado en ${fmt(Math.abs(remaining))} \u20AC</div>`;
+    }
+    updateProgress(pct);
+  } else {
+    budgetStatusEl.innerHTML = '';
+    updateProgress(0);
+  }
+}
+
+function updateProgress(pct) {
+  const clamped = Math.min(pct, 100);
+  progressBar.style.width = clamped + '%';
+
+  if (pct === 0 && order.length === 0) {
+    progressBar.style.width = '0%';
+    progressLabel.textContent = budget > 0 ? '0%' : 'Define un presupuesto';
+    progressBar.style.background = '#28a745';
+    return;
+  }
+
+  progressLabel.textContent = Math.round(pct) + '%';
+
+  if (pct <= 60) progressBar.style.background = '#28a745';
+  else if (pct <= 85) progressBar.style.background = '#ffc107';
+  else progressBar.style.background = '#E31837';
+}
+
+budgetInput.addEventListener('input', () => {
+  budget = parseFloat(budgetInput.value) || 0;
+  save();
+  renderOrder();
+});
+
+searchInput.addEventListener('input', () => {
+  renderProducts(searchInput.value);
+});
+
+btnCustomAdd.addEventListener('click', () => {
+  const name = customName.value.trim();
+  const price = parseFloat(customPrice.value);
+  if (!name || isNaN(price) || price <= 0) return;
+  addProduct(name, price);
+  customName.value = '';
+  customPrice.value = '';
+});
+
+btnClear.addEventListener('click', () => {
+  if (confirm('\u00BFVaciar todo el pedido?')) {
+    order = [];
+    save();
+    renderOrder();
+  }
+});
+
+clientNameInput.addEventListener('input', () => { save(); });
+
+// Preload logo as base64 for PDF
+let logoBase64 = null;
+(function preloadLogo() {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    logoBase64 = canvas.toDataURL('image/png');
+  };
+  // Try costco.webp first, fallback to logoCostco.svg (which is actually a PNG)
+  img.onerror = function() {
+    const img2 = new Image();
+    img2.crossOrigin = 'anonymous';
+    img2.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = img2.naturalWidth;
+      canvas.height = img2.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img2, 0, 0);
+      logoBase64 = canvas.toDataURL('image/png');
+    };
+    img2.src = 'logoCostco.svg';
+  };
+  img.src = 'costco.webp';
+})();
+
+function generatePDF() {
+  if (order.length === 0) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210;
+  const margin = 20;
+  const contentW = W - margin * 2;
+  const clientName_ = clientNameInput.value.trim() || 'Cliente';
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // --- Header band ---
+  doc.setFillColor(0, 93, 170);
+  doc.rect(0, 0, W, 42, 'F');
+
+  // Red accent line
+  doc.setFillColor(227, 24, 55);
+  doc.rect(0, 42, W, 3, 'F');
+
+  // Logo
+  if (logoBase64) {
+    // White rounded background for logo
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(margin, 6, 32, 30, 3, 3, 'F');
+    doc.addImage(logoBase64, 'PNG', margin + 2, 8, 28, 26);
+  }
+
+  // Title text (shifted right if logo present)
+  const textX = logoBase64 ? margin + 38 : W / 2;
+  const textAlign = logoBase64 ? 'left' : 'center';
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('COSTCO WHOLESALE', textX, 17, { align: textAlign });
+
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Resumen de Pedido', textX, 25, { align: textAlign });
+
+  // Date in header
+  doc.setFontSize(9);
+  doc.setTextColor(200, 220, 255);
+  doc.text(dateStr, textX, 33, { align: textAlign });
+
+  let y = 54;
+
+  // --- Client info box ---
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(margin, y, contentW, 18, 3, 3, 'F');
+  doc.setDrawColor(0, 93, 170);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, y, contentW, 18, 3, 3, 'S');
+
+  doc.setTextColor(100, 100, 100);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('CLIENTE', margin + 6, y + 6);
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text(clientName_, margin + 6, y + 14);
+
+  if (budget > 0) {
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('PRESUPUESTO', W - margin - 6, y + 6, { align: 'right' });
+    doc.setTextColor(0, 93, 170);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text(fmt(budget) + ' \u20AC', W - margin - 6, y + 14, { align: 'right' });
+  }
+
+  y += 28;
+
+  // --- Table header ---
+  doc.setFillColor(0, 93, 170);
+  doc.roundedRect(margin, y, contentW, 10, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('#', margin + 4, y + 7);
+  doc.text('Producto', margin + 14, y + 7);
+  doc.text('Con IVA', W - margin - 40, y + 7, { align: 'right' });
+  doc.text('Sin IVA', W - margin - 6, y + 7, { align: 'right' });
+
+  y += 12;
+
+  // --- Table rows ---
+  order.forEach((item, i) => {
+    if (i % 2 === 0) {
+      doc.setFillColor(248, 249, 252);
+      doc.rect(margin, y - 4, contentW, 9, 'F');
+    }
+
+    doc.setTextColor(120, 120, 120);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(i + 1), margin + 4, y + 2);
+
+    doc.setTextColor(30, 30, 30);
+    doc.setFont('helvetica', 'normal');
+    doc.text(item.name, margin + 14, y + 2);
+
+    doc.setTextColor(227, 24, 55);
+    doc.setFont('helvetica', 'bold');
+    doc.text(fmt(item.priceConIva) + ' \u20AC', W - margin - 40, y + 2, { align: 'right' });
+
+    doc.setTextColor(80, 80, 80);
+    doc.setFont('helvetica', 'normal');
+    doc.text(fmt(sinIva(item.priceConIva)) + ' \u20AC', W - margin - 6, y + 2, { align: 'right' });
+
+    y += 9;
+
+    // Page break if needed
+    if (y > 260) {
+      doc.addPage();
+      y = 20;
+    }
+  });
+
+  // --- Separator line ---
+  y += 2;
+  doc.setDrawColor(0, 93, 170);
+  doc.setLineWidth(0.8);
+  doc.line(margin, y, W - margin, y);
+  y += 8;
+
+  // --- Totals ---
+  const totalConIva = order.reduce((sum, item) => sum + item.priceConIva, 0);
+  const totalSinIvaVal = order.reduce((sum, item) => sum + sinIva(item.priceConIva), 0);
+
+  doc.setTextColor(120, 120, 120);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Total con IVA:', W - margin - 46, y);
+  doc.setTextColor(80, 80, 80);
+  doc.text(fmt(totalConIva) + ' \u20AC', W - margin - 6, y, { align: 'right' });
+
+  y += 8;
+
+  // Big total sin IVA
+  doc.setFillColor(0, 93, 170);
+  doc.roundedRect(margin + contentW / 2 - 10, y - 5, contentW / 2 + 10, 14, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Total sin IVA:', W - margin - 50, y + 4);
+  doc.setFontSize(14);
+  doc.text(fmt(totalSinIvaVal) + ' \u20AC', W - margin - 6, y + 4, { align: 'right' });
+
+  y += 18;
+
+  // --- Budget status ---
+  if (budget > 0) {
+    const remaining = budget - totalSinIvaVal;
+    const over = remaining < 0;
+
+    if (over) {
+      doc.setFillColor(248, 215, 218);
+      doc.roundedRect(margin, y, contentW, 12, 3, 3, 'F');
+      doc.setTextColor(114, 28, 36);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Presupuesto superado en ' + fmt(Math.abs(remaining)) + ' \u20AC', W / 2, y + 8, { align: 'center' });
+    } else {
+      doc.setFillColor(212, 237, 218);
+      doc.roundedRect(margin, y, contentW, 12, 3, 3, 'F');
+      doc.setTextColor(21, 87, 36);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Queda ' + fmt(remaining) + ' \u20AC de presupuesto', W / 2, y + 8, { align: 'center' });
+    }
+    y += 18;
+  }
+
+  // --- Footer ---
+  const pageCount = doc.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    const pageH = 297;
+    doc.setDrawColor(227, 24, 55);
+    doc.setLineWidth(0.5);
+    doc.line(margin, pageH - 15, W - margin, pageH - 15);
+
+    // Small logo in footer
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', margin, pageH - 14, 12, 9);
+    }
+
+    doc.setTextColor(170, 170, 170);
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Calculadora de Presupuesto Costco', W / 2, pageH - 10, { align: 'center' });
+    doc.text(order.length + ' producto' + (order.length !== 1 ? 's' : '') + '  |  ' + clientName_ + '  |  ' + dateStr, W / 2, pageH - 6, { align: 'center' });
+  }
+
+  // Save
+  const safeName = clientName_.replace(/[^a-zA-Z0-9\u00C0-\u024F ]/g, '').trim().replace(/\s+/g, '_');
+  doc.save('Pedido_Costco_' + safeName + '.pdf');
+}
+
+load();
+renderProducts();
+renderOrder();
+</script>
+</body>
+</html>
