@@ -807,7 +807,7 @@ function generatePDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
-  doc.text('Total sin IVA:', W - margin - 50, y + 4);
+  doc.text('Total sin IVA:', W - margin - 65, y + 4);
   doc.setFontSize(14);
   doc.text(fmt(totalSinIvaVal) + ' \u20AC', W - margin - 6, y + 4, { align: 'right' });
 
